@@ -471,7 +471,7 @@ Rules:
 
 ### 9.7 Agent Commerce and Payment
 
-- Support the Agentic Commerce Protocol (ACP) for agent access to catalog, inventory, cart, and checkout operations.
+- Support the Universal Commerce Protocol (UCP) for agent access to catalog, inventory, cart, and checkout operations.
 - Use Stripe Shared Payment Tokens (SPTs) for agent payments. Each SPT is issued after customer confirmation and limited to the platform's Stripe seller account, maximum amount, currency, and expiration.
 - Complete the payment by confirming a Stripe PaymentIntent with the SPT.
 - Use Stripe Connect separate charges and transfers to split the parent-order payment among multiple vendor accounts.
