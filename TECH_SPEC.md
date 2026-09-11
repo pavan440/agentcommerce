@@ -54,7 +54,7 @@ The modular monolith is selected to preserve local ACID transactions across inve
 | --- | --- | --- |
 | Customer/driver clients | React Native with Expo | iOS and Android; responsive web may share compatible components |
 | Vendor/operator clients | TypeScript web application | Tablet-friendly vendor order view and keyboard-complete operator workflows |
-| Domain API | Java 21, Spring Boot 3 | Modular monolith, REST, validation, transactions, scheduled jobs |
+| Domain API | Java 21, Spring Boot 4 | Modular monolith, REST, validation, transactions, scheduled jobs |
 | Agent orchestration | Python, FastAPI, LangGraph | Role graphs, tool clients, approval pauses, response streaming |
 | Primary data | PostgreSQL 16 | Transactional records, JSONB where bounded, pgvector, PostGIS |
 | Cache | Redis | Rate limits, short-lived cache, presence; never sole source of truth |

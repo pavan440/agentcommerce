@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: domain-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/agentcommerce}
+    username: ${DB_USER:agentcommerce}
+    password: ${DB_PASSWORD:agentcommerce_local}
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OIDC_ISSUER_URI:http://localhost:9090/realms/agentcommerce}
+          jwk-set-uri: ${OIDC_JWK_SET_URI:http://localhost:9090/realms/agentcommerce/protocol/openid-connect/certs}
+
+server:
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  security:
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8081}
+

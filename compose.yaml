@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: agentcommerce
+      POSTGRES_USER: agentcommerce
+      POSTGRES_PASSWORD: agentcommerce_local
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentcommerce -d agentcommerce"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  domain-api:
+    build:
+      context: ./domain-api
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/agentcommerce
+      DB_USER: agentcommerce
+      DB_PASSWORD: agentcommerce_local
+      OIDC_ISSUER_URI: ${OIDC_ISSUER_URI:-http://localhost:9090/realms/agentcommerce}
+      OIDC_JWK_SET_URI: ${OIDC_JWK_SET_URI:-http://host.docker.internal:9090/realms/agentcommerce/protocol/openid-connect/certs}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8081}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+
