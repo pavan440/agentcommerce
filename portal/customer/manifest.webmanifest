@@ -1,0 +1,9 @@
+{
+  "name": "AgentCommerce Customer",
+  "short_name": "AC Customer",
+  "start_url": "/customer/",
+  "scope": "/customer/",
+  "display": "standalone",
+  "background_color": "#fffdfa",
+  "theme_color": "#eb1700"
+}

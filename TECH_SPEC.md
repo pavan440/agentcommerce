@@ -1,10 +1,10 @@
 # Technical Specification: Agentic Community Delivery Marketplace
 
 **Phase:** MVP Phase 1 — Marketplace Foundation  
-**Version:** 1.1  
+**Version:** 1.2
 **Status:** Draft for engineering and stakeholder review  
 **Product requirements source:** `SPEC.md`  
-**Last updated:** 2026-09-11
+**Last updated:** 2026-09-13
 
 ## 1. Purpose and Scope
 
@@ -52,16 +52,17 @@ The modular monolith is selected to preserve local ACID transactions across inve
 
 | Layer | Baseline | Notes |
 | --- | --- | --- |
-| Customer/driver clients | React Native with Expo | iOS and Android; responsive web may share compatible components |
-| Vendor/operator clients | TypeScript web application | Tablet-friendly vendor order view and keyboard-complete operator workflows |
+| Customer and dasher clients | React Native with Expo | Android, iOS, and responsive web from shared role packages |
+| Vendor client | React Native with Expo and responsive web | Android, iOS, tablet, and desktop-web layouts |
+| Admin client | TypeScript React responsive web/PWA | Desktop-first, large-tablet support, keyboard-complete workflows; optional native shell |
 | Domain API | Java 21, Spring Boot 4 | Modular monolith, REST, validation, transactions, scheduled jobs |
 | Agent orchestration | Python, FastAPI, LangGraph | Role graphs, tool clients, approval pauses, response streaming |
 | Primary data | PostgreSQL 16 | Transactional records, JSONB where bounded, pgvector, PostGIS |
 | Cache | Redis | Rate limits, short-lived cache, presence; never sole source of truth |
-| Objects | S3; MinIO locally | CSVs, receipts, support and delivery evidence |
-| Events | Transactional outbox to EventBridge/SQS | At-least-once delivery with idempotent consumers |
+| Objects | Google Cloud Storage; MinIO locally | CSVs, receipts, support and delivery evidence |
+| Events | Transactional outbox to Cloud Pub/Sub | At-least-once delivery with idempotent consumers |
 | Payments | Stripe PaymentIntents and Connect | SPT/UCP when available; PaymentMethod fallback behind one interface |
-| Runtime | ECS Fargate | Private networking, autoscaling, health checks |
+| Runtime | Google Cloud Run | Community-cell services, private networking, autoscaling, health checks |
 | Infrastructure | Terraform | Separate development, staging, and production environments |
 
 Specific vendors and model IDs are deployment configuration, not embedded application constants.
@@ -84,7 +85,7 @@ Customer / Vendor / Driver / Operator clients
           v
  PostgreSQL + outbox --> durable events --> workers/notifications/search
           |
-       S3 / Redis
+       GCS / Redis
 ```
 
 Public clients cannot access internal tool routes. The agent service uses workload identity with short-lived credentials and scopes identifying the acting user, role, tenant, conversation, and requested tool. Provider webhooks terminate at dedicated authenticated endpoints and are reconciled asynchronously.
@@ -102,9 +103,9 @@ Public clients cannot access internal tool routes. The agent service uses worklo
 | Order | parent orders, vendor orders, order items | Submission saga, guarded state transitions, substitutions, cancellation |
 | Payment | payments, ledger entries, refunds, transfers | Provider abstraction, webhook reconciliation, money-state idempotency |
 | Dispatch & Delivery | drivers, offers, deliveries, stops | Eligibility, route feasibility, atomic assignment, pickup/delivery proof |
-| Messaging & Notification | conversations, messages, deliveries | Masked communication, templates, push/SMS/email delivery status |
-| Announcement & Offer | announcements, offers | Vendor-authored Phase 1 publishing and scheduling |
-| Support & Refund | cases, evidence, decisions | Rules-based resolution and operator escalation |
+| Messaging & Notification | conversations, messages, inquiries, agent inbox, deliveries | Masked communication, structured agent proposals, templates, push/SMS/email delivery status |
+| Announcement & Offer | announcements, campaigns, offers, custom proposals | Agent-assisted drafting, deterministic eligibility, vendor approval, publishing, scheduling, and redemption |
+| Support, Feedback & Refund | cases, evidence, feedback, responses, decisions | Feedback lifecycle, rules-based resolution, trend projections, and operator escalation |
 | Agent Governance | memory, approvals, actions, policies | Role tools, consent, action audit, emergency disable |
 | Audit & Analytics | audit entries, operational projections | Append-only evidence, metrics, reporting projections |
 
@@ -165,6 +166,12 @@ All mutable aggregates use UUIDv7 identifiers, `created_at`, `updated_at`, and a
 - `agent_approval`: principal, action, canonical argument hash, financial impact, expiry, status, confirmation method.
 - `agent_action`: principal, role, conversation, tool, redacted argument summary, argument hash, approval, result code, correlation ID.
 - `agent_memory`: owner, role, memory type/content, source, consent version, lifecycle timestamps.
+- `agent_autonomy_policy`: owner, role, action type, scope, limits, effective interval, version, revocation state.
+- `agent_inbox_item`: recipient principal/role, type, aggregate reference, summary, action state, expiry, correlation ID.
+- `vendor_inquiry`: customer, vendor location, optional cart/order, topic, structured request, consent context, status, expiry.
+- `vendor_proposal`: inquiry/substitution reference, terms, price/timing/allergen impact, approval, expiry, response state.
+- `vendor_offer`: vendor locations, items/audience, benefit, funding, eligibility, stacking, usage/budget limits, schedule, approval, status.
+- `customer_feedback`: customer, vendor/order/item reference, rating, tags, text, visibility, risk state, response state.
 - `inventory_import`: object key, content hash, status, summary, submitter, commit/rollback metadata.
 - `support_case`: reporter, order/delivery, issue type, description, evidence, risk flags, resolution, financial outcome.
 - `outbox_event`: event ID, aggregate/type/version, payload, correlation/causation IDs, publish state.
@@ -358,6 +365,19 @@ POST   /v1/deliveries/{id}/stops/{stopId}/arrival
 POST   /v1/deliveries/{id}/stops/{stopId}/pickup
 POST   /v1/deliveries/{id}/complete
 POST   /v1/support-cases/{id}/evidence
+GET    /v1/vendor-locations/{id}/inquiries
+POST   /v1/vendor-locations/{id}/inquiries/{inquiryId}/responses
+GET    /v1/vendor-locations/{id}/agent-inbox
+GET    /v1/vendor-locations/{id}/offers
+POST   /v1/vendor-locations/{id}/offers
+POST   /v1/vendor-locations/{id}/offers/{offerId}/approve
+GET    /v1/vendor-locations/{id}/feedback
+POST   /v1/vendor-locations/{id}/feedback/{feedbackId}/responses
+GET    /v1/customers/me/agent-inbox
+POST   /v1/customers/me/vendor-inquiries
+GET    /v1/customers/me/vendor-inquiries/{inquiryId}
+PUT    /v1/users/me/agent-autonomy-policies/{policyId}
+DELETE /v1/users/me/agent-autonomy-policies/{policyId}
 GET    /v1/agent-actions
 GET    /v1/agent-memory
 PATCH  /v1/agent-memory/{id}
@@ -385,6 +405,18 @@ Required Phase 1 events include all events in `SPEC.md`, plus:
 - `notification.requested`
 - `support_case.escalated`
 - `agent.action_completed`
+- `catalog.item.changed`
+- `inventory.availability.changed`
+- `inventory.low_stock.detected`
+- `order.substitution.proposed`
+- `order.substitution.resolved`
+- `vendor.inquiry.created`
+- `vendor.inquiry.responded`
+- `vendor.offer.proposed`
+- `vendor.offer.approved`
+- `vendor.offer.published`
+- `customer.feedback.created`
+- `customer.feedback.response_proposed`
 
 After bounded retries, failed events move to a dead-letter queue with an operator-visible alert and replay tooling. Replays preserve event IDs or carry an explicit replay identifier.
 
@@ -402,7 +434,7 @@ After bounded retries, failed events move to a dead-letter queue with an operato
 ## 17. Security and Privacy Controls
 
 - TLS 1.2+ in transit and provider-managed encryption at rest.
-- Secrets and signing keys in AWS Secrets Manager with rotation and no source-control copies.
+- Secrets and signing keys in Google Cloud Secret Manager with rotation and no source-control copies.
 - Private subnets and security groups restrict databases, caches, and internal APIs.
 - Object storage blocks public access, uses scoped presigned URLs, malware scanning, content-type checks, and retention policies.
 - Administrative and agent actions are append-only and queryable by authorized operators/users.
@@ -454,7 +486,7 @@ Audit logs answer who proposed, approved, executed, and observed every consequen
 
 Local development uses Docker Compose for the domain API, agent service, PostgreSQL with pgvector/PostGIS, Redis, MinIO, and a local durable queue emulator.
 
-AWS deployment uses an ALB/WAF edge, ECS Fargate services across availability zones, RDS PostgreSQL Multi-AZ, ElastiCache, S3, Secrets Manager, ECR, and EventBridge/SQS. Datastores and internal services remain private.
+GCP deployment follows the approved community-cell architecture in `docs/architecture/GCP_CELL_BASED_COMMUNITY_DEPLOYMENT_ARCHITECTURE.md`: Cloud Load Balancing and Cloud Armor at the edge; Cloud Run for the domain API and agent service; Cloud SQL for PostgreSQL 16 with PostGIS and pgvector; Memorystore for Redis; Google Cloud Storage; Secret Manager; Artifact Registry; and Cloud Pub/Sub. Datastores and internal services remain private, and requests are routed to the appropriate community cell.
 
 CI stages:
 

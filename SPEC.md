@@ -28,6 +28,9 @@ AI agents assist with decisions but do not bypass platform rules. Money movement
 - Allow vendors to accept, reject, prepare, and complete pickup handoff for orders.
 - Allow drivers to accept delivery offers containing multiple vendor pickups and update delivery status.
 - Allow vendors to maintain inventory through web forms and CSV uploads.
+- Let vendor agents manage menu and inventory within vendor-approved policies, including marking items unavailable and proposing replacements.
+- Let customer and vendor agents exchange structured inquiries, substitution proposals, custom requests, offers, and feedback.
+- Deliver standard local-delivery marketplace capabilities through agent-first workflows while retaining complete manual UI workflows.
 - Keep product availability synchronized with ordering in near real time.
 - Maintain an auditable record of agent suggestions, tool calls, approvals, and outcomes.
 - Apply a configurable `X%` platform fee to eligible products based on their vendor-declared in-store prices.
@@ -38,7 +41,8 @@ AI agents assist with decisions but do not bypass platform rules. Money movement
 - Autonomous driver vehicle operation.
 - Payroll, tax filing, insurance underwriting, or driver background-check processing.
 - Combining deliveries for multiple customers in one driver route.
-- Advertising auctions, subscriptions, and loyalty programs.
+- Advertising auctions and platform-funded membership programs. Vendor-authored recurring meal-service offers are allowed, but automatic recurring ordering or charging requires a separately approved mandate.
+- Full points-based loyalty accounting is deferred; Phase 1 may support targeted vendor offers and repeat-customer terms.
 - International currencies, taxes, and regulatory models.
 
 ### 3.3 Business Model
@@ -81,6 +85,10 @@ Key capabilities:
 - Accept or reject orders and propose substitutions.
 - Update preparation and pickup readiness.
 - Review order history and operational metrics.
+- Use the vendor agent to query and update menu and inventory within configured approval limits.
+- Receive customer-agent inquiries and send structured answers, substitutions, recommendations, and approved offers.
+- Accept custom requests, approve exceptions, and review or respond to customer feedback.
+- Configure agent autonomy policies for inventory, order acceptance, substitutions, communications, and promotions.
 
 ### 4.3 Driver
 
@@ -108,6 +116,8 @@ Each role-specific agent is an AI interface backed by a restricted set of platfo
 Every agent must:
 
 - Operate only on behalf of an authenticated user or platform workflow.
+- Carry the delegating user's identity, role, tenant scope, consent, preferences, and approved autonomy policy into every action.
+- Exchange proposals and decisions with other role agents only through authenticated, structured domain APIs or events; free-form agent messages cannot commit business state.
 - Use role-scoped tools and least-privilege authorization.
 - Explain material actions before requesting approval.
 - Show price, fees, payout, or refund impact before a financial commitment.
@@ -123,16 +133,27 @@ Every agent must:
 Responsibilities:
 
 - Translate natural-language requests into catalog searches and filters.
-- Recommend vendors and items using explicit customer constraints.
+- Recommend vendors and items using current vendor menus, availability, fees, timing, dietary constraints, saved customer preferences, and active published offers.
+- Answer conversational discovery requests such as showing a restaurant menu, finding nearby discounts, or comparing eligible vendors without inventing unpublished terms.
+- Let the customer inspect, create, update, and revoke preferences and bounded autonomy rules.
+- Create a structured pre-purchase inquiry when the customer asks a vendor about unpublished services or terms, including tiffin/meal plans, recurring purchases, or a repeat-customer discount.
 - Build and modify carts.
 - Identify unavailable items and suggest alternatives.
 - Present subtotal, taxes, fees, tip, estimated arrival, and final total.
 - Place an order only after required customer confirmation.
-- Monitor order events and summarize status.
+- Consume and record authorized vendor/order events in the customer agent inbox, notify the customer, and summarize actionable changes.
+- Negotiate structured vendor-agent proposals such as availability, preparation timing, and substitutions, executing only actions covered by current customer approval or pre-approved policy.
 - Initiate policy-allowed cancellation, refund, or support workflows.
 
 Customer agent tools:
 
+- `get_customer_preferences`
+- `update_customer_preferences`
+- `get_agent_inbox`
+- `respond_to_vendor_proposal`
+- `list_vendor_offers`
+- `create_vendor_inquiry`
+- `get_vendor_inquiry`
 - `search_catalog`
 - `get_vendor_details`
 - `get_item_availability`
@@ -161,7 +182,15 @@ Responsibilities:
 - Detect unavailable products and propose substitutions.
 - Update order preparation status.
 - Answer inventory questions and surface low-stock products.
+- Monitor inventory events, recommend corrections, and perform policy-approved item availability or quantity updates.
+- When an item is unavailable, notify the customer agent and propose ranked alternatives using menu compatibility, dietary constraints, price, and availability.
 - Assist with form updates and CSV import correction.
+- Answer structured customer inquiries using published vendor facts and service offerings.
+- Escalate unpublished pricing, recurring meal plans, or custom discounts to an authorized vendor user unless an approved response policy covers the request.
+- Return an approved, expiring offer with products/services, cadence, price, conditions, and validity when the vendor chooses to make a custom proposal.
+- Recommend products or bundles to a customer agent only when relevant to the request and permitted by communication and promotion policy.
+- Draft and send vendor-approved offers to eligible audiences with explicit terms, targeting, budget, and validity.
+- Receive custom requests and feedback, summarize themes, draft responses, and escalate safety, refund, abuse, or policy-sensitive matters.
 
 Vendor agent tools:
 
@@ -172,9 +201,22 @@ Vendor agent tools:
 - `propose_substitution`
 - `update_order_status`
 - `query_inventory`
+- `set_item_availability`
+- `recommend_inventory_update`
+- `notify_item_unavailable`
+- `recommend_substitutes`
 - `update_inventory`
 - `validate_inventory_import`
 - `commit_inventory_import`
+- `get_customer_inquiries`
+- `respond_to_customer_inquiry`
+- `create_customer_offer`
+- `get_vendor_inbox`
+- `send_customer_proposal`
+- `draft_offer`
+- `publish_approved_offer`
+- `get_customer_feedback`
+- `respond_to_feedback`
 
 Required approval examples:
 
@@ -182,6 +224,9 @@ Required approval examples:
 - Price changes above a configured percentage.
 - Rejecting an already accepted order.
 - Issuing vendor-funded credits outside predefined policy.
+- Publishing an offer, changing its budget or audience, or making a new customer-specific price commitment.
+- Accepting a custom request that changes price, allergens, fulfillment obligations, recurring cadence, or cancellation terms.
+- Sending proactive marketing outside vendor-approved audiences or customer communication consent.
 
 ### 5.4 Driver Agent
 
@@ -458,9 +503,14 @@ Rules:
 
 - Support in-app messaging with masked contact details.
 - Allow agents to draft and send transactional messages within policy.
+- Maintain role-scoped agent inboxes for order events, inquiries, proposals, offers, custom requests, and feedback.
+- Require structured message types and correlation IDs for agent-to-agent communication that may lead to a business action.
+- Apply consent, audience, frequency-cap, opt-out, privacy, and abuse controls to proactive vendor communications.
 - Notify users about material order state changes.
 - Support push notifications, with SMS or email fallback for critical events.
 - Retain message records according to privacy and support policies.
+- Let customers submit ratings, structured feedback, and private support feedback after eligible interactions.
+- Let vendor agents summarize feedback and draft responses without exposing private customer data or retaliating against negative feedback.
 
 ### 9.6 Support and Disputes
 
@@ -479,8 +529,11 @@ Rules:
 
 ### 9.8 Manual Vendor Announcements and Offers
 
-- In Phase 1, vendors manually create announcements and offers.
+- In Phase 1, vendors may manually create announcements and offers or ask the vendor agent to draft them. Publication remains vendor-approved.
 - The vendor chooses the strategy, products, discount, audience, channel, start time, and end time.
+- The vendor agent may recommend products, bundles, discount structure, audience, channel, and timing using available marketplace data, but must identify the basis and uncertainty.
+- Offers support item discounts, subtotal thresholds, free/discounted items, delivery-fee incentives, bundles, repeat-customer terms, and custom customer proposals as configured.
+- Offer eligibility, stacking, usage limits, budget, funding source, validity, and cancellation terms are deterministic and visible before redemption.
 - The platform publishes the vendor-approved announcement or offer to the community.
 - Phase 1 does not include POS integrations or automated sales-based recommendations.
 

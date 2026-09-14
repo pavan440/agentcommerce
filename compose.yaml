@@ -49,6 +49,14 @@ services:
       postgres:
         condition: service_healthy
 
+  portal:
+    build:
+      context: ./portal
+    ports:
+      - "3000:80"
+    depends_on:
+      - domain-api
+
 volumes:
   postgres-data:
 

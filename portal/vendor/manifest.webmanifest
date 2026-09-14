@@ -1,0 +1,9 @@
+{
+  "name": "AgentCommerce Vendor",
+  "short_name": "AC Vendor",
+  "start_url": "/vendor/",
+  "scope": "/vendor/",
+  "display": "standalone",
+  "background_color": "#fffdfa",
+  "theme_color": "#eb1700"
+}

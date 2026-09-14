@@ -1,0 +1,9 @@
+{
+  "name": "AgentCommerce Admin",
+  "short_name": "AC Admin",
+  "start_url": "/admin/",
+  "scope": "/admin/",
+  "display": "standalone",
+  "background_color": "#fffdfa",
+  "theme_color": "#eb1700"
+}

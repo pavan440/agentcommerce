@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-The candidate draft selects a credible implementation direction: a Spring Boot modular monolith for deterministic commerce, an isolated Python agent orchestrator, PostgreSQL, Redis, object storage, and AWS container infrastructure. It also correctly keeps the AI layer away from direct transactional database access.
+The candidate draft selects a credible implementation direction: a Spring Boot modular monolith for deterministic commerce, an isolated Python agent orchestrator, PostgreSQL, Redis, object storage, and a GCP community-cell deployment on Cloud Run. It also correctly keeps the AI layer away from direct transactional database access.
 
 The draft is not yet suitable for its stated status, "Approved for Implementation." It covers architecture choices but does not fully specify the required behavior in `SPEC.md`. In particular, it lacks implementable contracts for order state, inventory reservation, multi-vendor payment adjustment, dispatch, agent approvals, support, notifications, privacy, audit retention, failure recovery, accessibility, and acceptance-test traceability.
 

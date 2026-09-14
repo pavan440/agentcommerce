@@ -1,0 +1,9 @@
+{
+  "name": "AgentCommerce Dasher",
+  "short_name": "AC Dasher",
+  "start_url": "/dasher/",
+  "scope": "/dasher/",
+  "display": "standalone",
+  "background_color": "#fffdfa",
+  "theme_color": "#eb1700"
+}

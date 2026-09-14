@@ -130,3 +130,27 @@ The system triggers an `agent_approvals` token and halts autonomous execution wh
 When triggered, the customer receives an instant **1-Tap Interactive Push Notification / Voice Prompt**:
 - *"Paradise Bistro is sold out of Chicken Biryani. Substitute with Samosa Chaat (-$5.00 refund) or Reroute to Curry Express (+$2.00)?"*
 - Buttons: `[ Samosa Chaat ]` `[ Reroute Curry Express ]` `[ Cancel Order ]`
+
+---
+
+## 6. Pre-Purchase Inquiry and Offer Negotiation
+
+The customer may begin with voice or text requests such as:
+
+- "Show me this restaurant's menu."
+- "Which nearby restaurant has a discount?"
+- "Ask this restaurant whether they provide tiffin service."
+- "If I order every day, can they offer a repeat-customer discount?"
+
+The Customer Agent resolves these requests as follows:
+
+1. Read published menus, current availability, eligible offers, fees, and service metadata through authoritative APIs.
+2. Answer published facts immediately and identify the source and validity of any discount.
+3. For an unpublished service or requested deal, create a structured, auditable vendor inquiry containing the customer's question and only the minimum information authorized for disclosure.
+4. The Vendor Agent answers automatically only from vendor-approved facts, service definitions, or response policies.
+5. A vendor owner approves any new custom price, discount, recurring cadence, subscription-like commitment, or exception not already covered by policy.
+6. The Vendor Agent returns a structured, expiring proposal. The Customer Agent explains price, cadence, minimum commitment, cancellation terms, delivery assumptions, and expiry.
+7. Inquiry and negotiation do not create an order, recurring charge, or subscription. The customer must explicitly accept the proposal and authorize any resulting commerce action.
+8. All messages, proposals, approvals, expirations, and resulting actions retain correlation and audit identifiers.
+
+Agents communicate through authenticated domain APIs and events rather than unrestricted direct model-to-model messaging. Structured services remain authoritative for menu, offer, order, and payment state.

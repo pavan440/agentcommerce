@@ -15,9 +15,12 @@ docker compose up --build
 
 The services are available at:
 
+- Marketplace portal: `http://localhost:3000`
 - Domain API: `http://localhost:8080`
 - Health check: `http://localhost:8080/actuator/health`
 - PostgreSQL: `localhost:5432`
+
+The portal workflow and bearer-token setup are documented in `docs/ui/MARKETPLACE_PORTAL.md`.
 
 The default OIDC URLs point to a future local identity provider. For a managed development tenant, set these before starting:
 

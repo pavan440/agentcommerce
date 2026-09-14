@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AgentCommerce marketplace operations portal">
+  <title>Common Market OS</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#overview" aria-label="Common home">
+        <span class="brand-mark">C</span>
+        <span><strong>COMMON</strong><small>Market OS</small></span>
+      </a>
+      <nav class="nav" aria-label="Portal navigation">
+        <button class="nav-item active" data-view="overview"><span>⌂</span> Overview</button>
+        <p class="nav-label">Workspaces</p>
+        <button class="nav-item" data-view="customer"><span>◎</span> Customer</button>
+        <button class="nav-item" data-view="vendor"><span>◇</span> Vendor</button>
+        <button class="nav-item" data-view="dasher"><span>↗</span> Dasher</button>
+        <button class="nav-item" data-view="operator"><span>⊞</span> Operator</button>
+        <p class="nav-label">Developer</p>
+        <button class="nav-item" data-view="rest"><span>⌘</span> REST Lab</button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="connection"><span id="connection-dot" class="status-dot"></span><div><strong id="connection-label">Not checked</strong><small>Domain API</small></div></div>
+        <button id="open-session" class="button subtle full">API session</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><p class="eyebrow" id="page-kicker">Marketplace workspace</p><h1 id="page-title">Overview</h1></div>
+        <div class="top-actions">
+          <button id="refresh-view" class="icon-button" title="Refresh current view" aria-label="Refresh current view">↻</button>
+          <button id="session-chip" class="session-chip"><span class="avatar">LC</span><span><strong id="session-name">Local customer</strong><small id="session-subject">JWT required</small></span></button>
+        </div>
+      </header>
+
+      <div id="toast-region" class="toast-region" aria-live="polite"></div>
+
+      <section id="view-overview" class="view active">
+        <div class="hero panel">
+          <div class="hero-copy">
+            <p class="eyebrow accent">Agentic community delivery</p>
+            <h2>One operating system.<br><em>Every side of the market.</em></h2>
+            <p>Inspect the live API, onboard vendors and dashers, and manage customer preferences from a single calm workspace.</p>
+            <div class="button-row"><a class="button primary" href="/customer/">Customer app</a><a class="button secondary" href="/vendor/">Vendor app</a><a class="button secondary" href="/dasher/">Dasher app</a><a class="button secondary" href="/admin/">Admin app</a><button class="button secondary" data-jump="rest">REST Lab</button></div>
+          </div>
+          <div class="pulse-card">
+            <span class="pulse-orbit"><i></i></span>
+            <p>API readiness</p><strong id="overview-health">Waiting</strong><small id="overview-api-url">http://localhost:8080</small>
+          </div>
+        </div>
+        <div class="metric-grid">
+          <article class="metric"><span class="metric-icon moss">◇</span><div><small>My vendors</small><strong id="metric-vendors">—</strong><p>Connected businesses</p></div></article>
+          <article class="metric"><span class="metric-icon amber">↗</span><div><small>Dasher state</small><strong id="metric-dasher">—</strong><p>Verification & availability</p></div></article>
+          <article class="metric"><span class="metric-icon blue">◎</span><div><small>Identity</small><strong id="metric-identity">Disconnected</strong><p id="metric-roles">Bearer token needed</p></div></article>
+        </div>
+        <div class="two-column">
+          <article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Quick start</p><h3>Validate a vendor workflow</h3></div><span class="badge">4 steps</span></div><ol class="steps"><li><span>1</span><div><strong>Connect identity</strong><p>Paste a bearer JWT in API session.</p></div></li><li><span>2</span><div><strong>Create vendor</strong><p>Submit legal and storefront details.</p></div></li><li><span>3</span><div><strong>Add location</strong><p>Set the physical store and community.</p></div></li><li><span>4</span><div><strong>Open commerce</strong><p>Read and update order settings.</p></div></li></ol></article>
+          <article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Recent response</p><h3>API activity</h3></div><button class="text-button" data-jump="rest">Open REST Lab →</button></div><div id="recent-activity" class="empty-state"><span>⌁</span><strong>No requests yet</strong><p>Your latest API response will appear here.</p></div></article>
+        </div>
+      </section>
+
+      <section id="view-customer" class="view">
+        <div class="workspace-grid">
+          <article class="panel section-card span-2"><div class="section-heading"><div><p class="eyebrow">Customer identity</p><h3>Profile & preferences</h3></div><button id="load-customer" class="button secondary">Load profile</button></div>
+            <form id="customer-form" class="form-grid">
+              <label>Display name<input name="displayName" placeholder="Ada Customer"></label><label>Timezone<input name="timezone" placeholder="America/Los_Angeles"></label>
+              <label>Locale<input name="locale" placeholder="en-US"></label><label>Default tip %<input name="defaultTipPercentage" type="number" min="0" max="100" step="0.25"></label>
+              <label class="span-2">Dietary restrictions<input name="dietaryRestrictions" placeholder="VEGETARIAN, HALAL"></label><label class="span-2">Allergens<input name="allergens" placeholder="PEANUTS, SHELLFISH"></label>
+              <label>Substitutions<select name="substitutionMode"><option>APPROVAL_REQUIRED</option><option>PREFERENCE_BASED</option></select></label><label class="toggle-label"><input name="autoOrderEnabled" type="checkbox"><span>Allow auto-order</span></label>
+              <label>Auto-order maximum (minor units)<input name="autoOrderMaxAmountMinor" type="number" min="0"></label><div class="form-action"><button class="button primary" type="submit">Save profile</button></div>
+            </form>
+          </article>
+          <article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Delivery</p><h3>Saved addresses</h3></div><button id="load-addresses" class="icon-button">↻</button></div><div id="address-list" class="stack-list empty-copy">Load your addresses to begin.</div></article>
+          <article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">New destination</p><h3>Add address</h3></div></div><form id="address-form" class="form-stack"><label>Label<input name="label" value="Home" required></label><label>Street address<input name="addressLine1" value="100 Pine Street" required></label><div class="split"><label>City<input name="locality" value="Seattle" required></label><label>State<input name="administrativeArea" value="WA" required></label></div><div class="split"><label>Postal code<input name="postalCode" value="98101" required></label><label>Country<input name="countryCode" value="US" maxlength="2" required></label></div><label>Formatted address<input name="formattedAddress" value="100 Pine Street, Seattle, WA 98101" required></label><div class="split"><label>Latitude<input name="latitude" type="number" step="any" value="47.6101" required></label><label>Longitude<input name="longitude" type="number" step="any" value="-122.3344" required></label></div><label class="toggle-label"><input name="isDefault" type="checkbox"><span>Set as default</span></label><button class="button primary" type="submit">Add address</button></form></article>
+          <article class="panel section-card span-2"><div class="section-heading"><div><p class="eyebrow">Privacy center</p><h3>Consent controls</h3></div></div><div class="consent-grid"><div><strong>Location tracking</strong><p>Required for live delivery progress.</p><div class="button-row"><button class="button secondary consent-button" data-type="LOCATION_TRACKING" data-granted="true">Grant</button><button class="button subtle consent-button" data-type="LOCATION_TRACKING" data-granted="false">Revoke</button></div></div><div><strong>Agent personalization</strong><p>Use preferences for agent recommendations.</p><div class="button-row"><button class="button secondary consent-button" data-type="AGENT_PERSONALIZATION" data-granted="true">Grant</button><button class="button subtle consent-button" data-type="AGENT_PERSONALIZATION" data-granted="false">Revoke</button></div></div><label>Policy version<input id="policy-version" value="2026-09"></label></div></article>
+        </div>
+      </section>
+
+      <section id="view-vendor" class="view">
+        <div class="vendor-banner"><div><p class="eyebrow">Vendor studio</p><h2>From storefront draft to live commerce settings.</h2></div><button id="load-vendors" class="button light">Refresh my vendors</button></div>
+        <div class="workspace-grid">
+          <article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Portfolio</p><h3>My vendors</h3></div><span id="vendor-count" class="badge">0</span></div><div id="vendor-list" class="stack-list empty-copy">Connect and load your vendors.</div></article>
+          <article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Onboarding</p><h3>Create vendor</h3></div></div><form id="vendor-form" class="form-stack"><label>Legal name<input name="legalName" value="Neighborhood Foods LLC" required></label><label>Display name<input name="displayName" value="Neighborhood Foods" required></label><label>Canonical slug<input name="slug" placeholder="neighborhood-foods" required></label><div class="split"><label>Category<select name="category"><option>RESTAURANT</option><option>GROCERY</option><option>CONVENIENCE</option><option>PHARMACY</option><option>RETAIL</option></select></label><label>Currency<input name="defaultCurrency" value="USD" maxlength="3"></label></div><label>Support email<input name="supportEmail" type="email" value="owner@example.com"></label><label>Tags<input name="tags" value="local, family-owned"></label><button class="button primary" type="submit">Create draft vendor</button></form></article>
+          <article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Physical presence</p><h3>Add vendor location</h3></div></div><form id="location-form" class="form-stack"><label>Vendor ID<input name="vendorId" id="location-vendor-id" placeholder="Select a vendor" required></label><div class="split"><label>Name<input name="name" value="Pine Street" required></label><label>Slug<input name="slug" placeholder="pine-street" required></label></div><label>Community code<input name="communityCode" value="sea-capitol-hill" required></label><label>Street address<input name="addressLine1" value="100 Pine Street" required></label><div class="split"><label>City<input name="locality" value="Seattle" required></label><label>State<input name="administrativeArea" value="WA" required></label></div><div class="split"><label>Postal code<input name="postalCode" value="98101" required></label><label>Country<input name="countryCode" value="US" required></label></div><label>Formatted address<input name="formattedAddress" value="100 Pine Street, Seattle, WA 98101" required></label><div class="split"><label>Latitude<input name="latitude" type="number" step="any" value="47.6101" required></label><label>Longitude<input name="longitude" type="number" step="any" value="-122.3344" required></label></div><label>Timezone<input name="timezone" value="America/Los_Angeles" required></label><button class="button primary" type="submit">Create draft location</button></form></article>
+          <article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Commerce control</p><h3>Location settings</h3></div><button id="load-commerce" class="button secondary">Load</button></div><form id="commerce-form" class="form-stack"><label>Location ID<input name="locationId" id="commerce-location-id" placeholder="Create or paste a location ID" required></label><label class="toggle-label"><input name="isAcceptingOrders" type="checkbox"><span>Accepting orders</span></label><div class="split"><label>Default prep<input name="defaultPreparationMinutes" type="number" min="1" value="20"></label><label>Maximum prep<input name="maximumPreparationMinutes" type="number" min="1" value="60"></label></div><label>Minimum prep<input name="minimumPreparationMinutes" type="number" min="1" value="10"></label><p class="version-note">Current version: <strong id="commerce-version">—</strong></p><button class="button primary" type="submit">Update settings</button></form></article>
+        </div>
+      </section>
+
+      <section id="view-dasher" class="view">
+        <div class="workspace-grid">
+          <article class="panel section-card span-2 dasher-status"><div><p class="eyebrow">Dasher command</p><h2 id="dasher-heading">Not onboarded</h2><p id="dasher-summary">Load your profile or begin onboarding.</p></div><div class="availability"><span id="dasher-online-dot" class="status-dot"></span><strong id="dasher-online-label">Offline</strong><button id="toggle-availability" class="button primary" disabled>Go online</button></div></article>
+          <article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Vehicle profile</p><h3>Onboarding</h3></div><button id="load-dasher" class="icon-button">↻</button></div><form id="dasher-form" class="form-stack"><label>Vehicle type<select name="vehicleType"><option>CAR</option><option>SCOOTER</option><option>BICYCLE</option><option>FOOT</option></select></label><div class="split"><label>Make<input name="vehicleMake" value="Toyota"></label><label>Model<input name="vehicleModel" value="Camry"></label></div><div class="split"><label>Color<input name="vehicleColor" value="Silver"></label><label>Plate<input name="licensePlate" value="SEA1234"></label></div><label>License number<input name="licenseNumber" value="WA-DL-12345678"></label><label>Max active pickups<input name="maxActivePickups" type="number" min="1" max="10" value="3"></label><button id="save-dasher" class="button primary" type="submit">Start onboarding</button></form></article>
+          <article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Coverage</p><h3>Operating zones</h3></div><button id="load-zones" class="icon-button">↻</button></div><div id="zone-list" class="stack-list empty-copy">Load dasher profile first.</div><form id="zone-form" class="form-stack separated"><label>Zone name<input name="zoneName" value="Downtown Seattle" required></label><label>Boundary points <small>latitude, longitude — one per line</small><textarea name="boundary" rows="5">47.6200, -122.3500
+47.6200, -122.3200
+47.5900, -122.3200
+47.5900, -122.3500</textarea></label><button class="button secondary" type="submit">Add operating zone</button></form></article>
+        </div>
+      </section>
+
+      <section id="view-operator" class="view">
+        <div class="operator-hero panel"><div><p class="eyebrow">Mission control</p><h2>Human verification boundary</h2><p>Review dasher background-check outcomes using an authenticated account with the local <code>OPERATOR</code> role.</p></div><span class="shield">✓</span></div>
+        <div class="workspace-grid"><article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Dasher review</p><h3>Verification decision</h3></div></div><form id="operator-form" class="form-stack"><label>Dasher user ID<input name="dasherId" placeholder="UUID" required></label><div class="split"><label>Profile status<select name="status"><option>ACTIVE</option><option>SUSPENDED</option></select></label><label>Background check<select name="backgroundCheckStatus"><option>APPROVED</option><option>REJECTED</option></select></label></div><label>Expected version<input name="expectedVersion" type="number" min="0" value="0" required></label><button class="button primary" type="submit">Submit verification</button></form></article><article class="panel section-card"><div class="section-heading"><div><p class="eyebrow">Guardrails</p><h3>Operator policy</h3></div></div><ul class="policy-list"><li><span>01</span><div><strong>Role checked in database</strong><p>JWT claims alone cannot grant operator access.</p></div></li><li><span>02</span><div><strong>Approval required</strong><p>ACTIVE status requires an approved background check.</p></div></li><li><span>03</span><div><strong>Versioned decision</strong><p>Stale reviews return a 409 conflict.</p></div></li></ul></article></div>
+      </section>
+
+      <section id="view-rest" class="view">
+        <div class="rest-layout panel">
+          <div class="request-pane"><div class="section-heading"><div><p class="eyebrow">REST Lab</p><h3>Live request builder</h3></div><span class="badge mono">Bearer JWT</span></div><label>Preset<select id="rest-preset"><option value="">Custom request</option><option value="profile">GET current profile</option><option value="vendors">GET my vendors</option><option value="createVendor">POST create vendor</option><option value="dasher">GET dasher profile</option><option value="health">GET health</option></select></label><div class="request-line"><select id="rest-method" aria-label="HTTP method"><option>GET</option><option>POST</option><option>PATCH</option><option>DELETE</option></select><input id="rest-path" value="/v1/me" aria-label="Request path"><button id="send-rest" class="button primary">Send</button></div><label>JSON body<textarea id="rest-body" class="code-area" rows="18" spellcheck="false">{
+  
+}</textarea></label></div>
+          <div class="response-pane"><div class="response-bar"><div><span id="response-status" class="response-code waiting">WAITING</span><span id="response-time">— ms</span></div><button id="copy-response" class="text-button">Copy response</button></div><pre id="rest-response">Connect an API session, choose a preset, and send a request.</pre></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="session-dialog">
+    <form method="dialog" class="session-form">
+      <div class="dialog-head"><div><p class="eyebrow">API session</p><h2>Connect to Domain API</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <p class="dialog-copy">Use a real bearer JWT from your OIDC development tenant. The token stays only in this browser tab's session storage.</p>
+      <label>API base URL<input id="api-base-url" value="http://localhost:8080"></label>
+      <label>Bearer JWT<textarea id="api-token" rows="6" placeholder="eyJhbGciOi..."></textarea></label>
+      <div class="security-note"><span>🔒</span><p><strong>Production-safe testing</strong><br>No bypass headers or development backdoors are enabled.</p></div>
+      <div class="button-row end"><button class="button subtle" value="cancel">Cancel</button><button id="save-session" class="button primary" value="default">Save & connect</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

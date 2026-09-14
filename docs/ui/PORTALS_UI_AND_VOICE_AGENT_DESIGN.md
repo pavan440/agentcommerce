@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-This document defines the complete UI/UX architecture, component hierarchy, design system tokens, and interaction flows across the 3 marketplace portals. It establishes a unified multi-modal interaction paradigm that seamlessly transitions from **Phase 1 (Natural Language Text Chat & Visual Widgets)** to **Phase 2 (Real-Time Bidirectional Voice Agents with Synchronized Visual Canvas)**.
+This document defines the complete UI/UX architecture, component hierarchy, design system tokens, and interaction flows across the four role applications. It establishes a unified multi-modal interaction paradigm that seamlessly transitions from **Phase 1 (Natural Language Text Chat & Visual Widgets)** to **Phase 2 (Real-Time Bidirectional Voice Agents with Synchronized Visual Canvas)**.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -27,11 +27,28 @@ This document defines the complete UI/UX architecture, component hierarchy, desi
 
 ---
 
-## 2. Global Design System & Aesthetic Foundations
+## 2. Cross-Platform Application Topology
+
+AgentCommerce ships four distinct role applications with shared design tokens, authentication, API contracts, accessibility primitives, agent components, and observability:
+
+| Application | Primary devices | Responsive desktop web | Installable mobile web | Native packaging target |
+| --- | --- | --- | --- | --- |
+| Customer | Android and iOS phones | Yes | Yes | Expo/React Native |
+| Vendor | Desktop, tablet, Android, iOS | Yes | Yes | Expo/React Native where needed |
+| Dasher | Android and iOS phones | Operational fallback only | Yes | Expo/React Native |
+| Admin | Desktop and large tablet | Yes | Yes | Web-first; optional native shell |
+
+Each application has separate navigation, authorization boundaries, notification channels, offline/degraded states, and role-specific agent tools. Shared packages must not create cross-role data access.
+
+Phase 1 supports text plus push-to-talk speech input and optional text-to-speech responses where device/browser capability permits. Phase 2 adds low-latency, interruptible, bidirectional real-time voice. Every voice action has an equivalent visual confirmation and manual workflow.
+
+Current responsive PWA routes are `/customer/`, `/vendor/`, `/dasher/`, and `/admin/`. They establish the role information architecture and REST integration shell; native store packaging remains a separate build/release task.
+
+## 3. Global Design System & Aesthetic Foundations
 
 All portals share a cohesive, premium design system designed for maximum legibility, high visual hierarchy, micro-animations, and instant visual feedback during AI agent execution.
 
-### 2.1 Color Tokens (Dark & Light Mode HSL)
+### 3.1 Color Tokens (Dark & Light Mode HSL)
 
 | Token | Dark Mode (Default) | Light Mode | Usage |
 | --- | --- | --- | --- |
@@ -46,16 +63,16 @@ All portals share a cohesive, premium design system designed for maximum legibil
 | `--text-secondary` | `hsl(215, 20%, 65%)` | `hsl(215, 16%, 47%)` | Secondary metadata, labels, timestamps |
 | `--border-subtle` | `hsl(222, 30%, 20%)` | `hsl(214, 32%, 91%)` | Dividers, card strokes, input borders |
 
-### 2.2 Typography Hierarchy (Inter & Outfit)
+### 3.2 Typography Hierarchy (Inter & Outfit)
 - **Brand / Display Titles**: `Outfit`, 600/700 weight with tight tracking (`-0.02em`).
 - **Data & Navigation**: `Inter`, 400/500/600 weight with high contrast tabular numbers.
 - **Agent Monospace Logs**: `JetBrains Mono` for JSON payloads, tokens, coordinates, and latency.
 
 ---
 
-## 3. Portal 1: Admin & Call Center Operations Console ("Mission Control")
+## 4. Portal 1: Admin & Call Center Operations Console ("Mission Control")
 
-### 3.1 Layout Architecture
+### 4.1 Layout Architecture
 The Admin Console is structured as an ultra-dense, real-time command center for call center operators and dispute mediators.
 
 ```
@@ -76,7 +93,7 @@ The Admin Console is structured as an ultra-dense, real-time command center for 
 └───────────────────┴──────────────────────────────────────────┴──────────────────────────────┘
 ```
 
-### 3.2 Key Views & Features
+### 4.2 Key Views & Features
 1. **360° Order Triad Synchronizer**:
    - Simultaneously renders Customer profile, all Vendor sub-orders (with preparation clocks), and the assigned Driver's live GPS telemetry.
 2. **One-Click Dispute & Refund Engine**:
@@ -89,9 +106,9 @@ The Admin Console is structured as an ultra-dense, real-time command center for 
 
 ---
 
-## 4. Portal 2: Vendor Storefront, Menu Studio & Kitchen Tablet
+## 5. Portal 2: Vendor Storefront, Menu Studio & Kitchen Tablet
 
-### 4.1 Dual-Mode Catalog & Inventory Architecture
+### 5.1 Dual-Mode Catalog & Inventory Architecture
 To handle both **Restaurants** and **Grocery/Convenience Retailers**, the portal provides two synchronized catalog modes:
 
 ```
@@ -107,7 +124,7 @@ To handle both **Restaurants** and **Grocery/Convenience Retailers**, the portal
 └──────────────────────────────────────────────────┴──────────────────────────────────────────┘
 ```
 
-### 4.2 Kitchen Tablet View ("Live Expediter")
+### 5.2 Kitchen Tablet View ("Live Expediter")
 Designed for high-contrast touchscreens in busy kitchen environments:
 - **Audio Order Alerts**: Distinct audible chimes for incoming sub-orders with auto-escalating volume.
 - **1-Tap Actions**:
@@ -117,7 +134,7 @@ Designed for high-contrast touchscreens in busy kitchen environments:
   - `Busy Mode (+10m prep buffer)`: Dynamically adds 10 minutes to all future order quotes during rushes.
   - `Pause Store (30m / 1h / Indefinite)`: Temporarily pauses marketplace orders with auto-resume countdown timer.
 
-### 4.3 Phase 2 Hands-Free Kitchen Voice Assistant
+### 5.3 Phase 2 Hands-Free Kitchen Voice Assistant
 In hot and fast-paced kitchens where staff wear gloves and cannot touch screens:
 - **Wake-Word / Push-to-Talk Voice Interface**:
   - *"Agent, 86 the Garlic Bread for the evening."* → Instantly marks item unavailable on the live customer catalog.
@@ -126,9 +143,9 @@ In hot and fast-paced kitchens where staff wear gloves and cannot touch screens:
 
 ---
 
-## 5. Portal 3: Customer Marketplace & Multi-Vendor Discovery Experience
+## 6. Portal 3: Customer Marketplace & Multi-Vendor Discovery Experience
 
-### 5.1 Multi-Vendor Shopping Architecture
+### 6.1 Multi-Vendor Shopping Architecture
 - **Neighborhood Cart Drawer**: Allows customers to add items from multiple local vendors (e.g., Artisan Pizza + Craft Ice Cream + Corner Convenience) into **one single coordinated delivery checkout**.
 - **Transparent Price Breakdown**:
   - Vendor In-Store Base Price: `$14.00`
@@ -137,16 +154,16 @@ In hot and fast-paced kitchens where staff wear gloves and cannot touch screens:
   - Estimated Taxes & Tip: `$4.50`
   - **Itemized Total Quote**: `$24.59` (Guaranteed price snapshot for 10 minutes).
 
-### 5.2 Phase 1: Natural Language Conversational Assistant
+### 6.2 Phase 1: Natural Language Conversational Assistant
 - **Docked AI Chat Bar**:
   - *"Find me 2 gluten-free pepperoni pizzas and vegan gelato from stores within 3 miles."*
   - The AI agent queries live PostGIS availability, generates rich product comparison cards, and populates the multi-vendor cart with 1 click.
 
 ---
 
-## 6. Phase 2: Real-Time Voice Agent Multi-Modal Transition
+## 7. Phase 2: Real-Time Voice Agent Multi-Modal Transition
 
-### 6.1 Real-Time Audio Architecture (WebRTC + Speech-to-Speech)
+### 7.1 Real-Time Audio Architecture (WebRTC + Speech-to-Speech)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -170,7 +187,7 @@ In hot and fast-paced kitchens where staff wear gloves and cannot touch screens:
 └─────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 6.2 Voice UI Components & Visual States
+### 7.2 Voice UI Components & Visual States
 When the user activates Voice Mode, the UI transforms with a fluid, multi-modal interface:
 
 ```
@@ -184,7 +201,7 @@ When the user activates Voice Mode, the UI transforms with a fluid, multi-modal 
 └─────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 6.3 Synchronized Visual Canvas & Step-Up Voice Confirmation
+### 7.3 Synchronized Visual Canvas & Step-Up Voice Confirmation
 - **Visual-Voice Pairing**: As the Voice Agent speaks (*"I found 3 great burger spots nearby: Bella Bistro, BurgerCraft, and Urban Grill"*), the main screen automatically scrolls and highlights the 3 respective vendor cards in sync with the audio.
 - **Voice Step-Up Approval Security**:
   - Placing an order or committing financial transactions requires deterministic verbal confirmation:
@@ -194,9 +211,9 @@ When the user activates Voice Mode, the UI transforms with a fluid, multi-modal 
 
 ---
 
-## 7. Driver Hands-Free Voice Assistant
+## 8. Portal 4: Driver Hands-Free Voice Assistant
 
-### 7.1 Eyes-on-the-Road Audio Navigation
+### 8.1 Eyes-on-the-Road Audio Navigation
 Drivers navigating multi-pickup routes cannot look at phone screens while driving:
 - **Audio Stop Guidance**: *"Next stop: Bella Italia. Turn left on Elm Street. Parking spot #4 is reserved for delivery drivers in the back alley."*
 - **Voice Arrival & Pickup Confirmation**:
@@ -207,7 +224,7 @@ Drivers navigating multi-pickup routes cannot look at phone screens while drivin
 
 ---
 
-## 8. Implementation Roadmap (Phase 1 to Phase 2)
+## 9. Implementation Roadmap (Phase 1 to Phase 2)
 
 | Stage | Milestones | Primary Deliverables |
 | --- | --- | --- |
@@ -219,7 +236,7 @@ Drivers navigating multi-pickup routes cannot look at phone screens while drivin
 
 ---
 
-## 9. Approval Checklist
+## 10. Approval Checklist
 
 - [x] Multi-portal architecture (Admin, Vendor, Customer, Driver) accepted.
 - [x] Dual-mode catalog architecture (Restaurant Menus + Grocery Inventories) defined.
