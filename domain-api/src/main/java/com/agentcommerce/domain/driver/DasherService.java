@@ -145,8 +145,8 @@ public class DasherService {
         String points = boundary.stream()
             .map(point -> point.longitude() + " " + point.latitude())
             .collect(Collectors.joining(", "));
-        DriverZonePoint first = boundary.getFirst();
-        DriverZonePoint last = boundary.getLast();
+        DriverZonePoint first = boundary.get(0);
+        DriverZonePoint last = boundary.get(boundary.size() - 1);
         if (!first.equals(last)) {
             points += ", " + first.longitude() + " " + first.latitude();
         }
