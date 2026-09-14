@@ -68,25 +68,25 @@ Each future audit result must include evidence such as source paths, test names,
 
 | ID | Phase | Actor | Acceptance statement | Source | Status |
 | --- | --- | --- | --- | --- | --- |
-| CAT-001 | 1 | Vendor | Vendor can manage products, variants, modifiers, prices, categories, descriptions, allergen metadata, and active status. | `SPEC.md` §4.2, §11 | Not assessed |
-| CAT-002 | 1 | Customer | Customer can browse and search nearby eligible vendors and products using exact and semantic retrieval. | `SPEC.md` §4.1, §11 | Not assessed |
-| CAT-003 | 1 | Customer | Discovery defaults to vendors that are open, serviceable, and currently available. | `SPEC.md` §9.1, §11 | Not assessed |
-| CAT-004 | 1 | Customer | Results expose price, options, allergens, fees, availability, and estimated timing needed for a purchase decision. | `SPEC.md` §11 | Not assessed |
-| CAT-005 | 1 | Platform | Search-index lag cannot determine checkout correctness; checkout revalidates authoritative state. | `TECH_SPEC.md` §18 | Not assessed |
+| CAT-001 | 1 | Vendor | Vendor can manage products, variants, modifiers, prices, categories, descriptions, allergen metadata, and active status. | `SPEC.md` §4.2, §11 | Partial |
+| CAT-002 | 1 | Customer | Customer can browse and search nearby eligible vendors and products using exact and semantic retrieval. | `SPEC.md` §4.1, §11 | Partial |
+| CAT-003 | 1 | Customer | Discovery defaults to vendors that are open, serviceable, and currently available. | `SPEC.md` §9.1, §11 | Partial |
+| CAT-004 | 1 | Customer | Results expose price, options, allergens, fees, availability, and estimated timing needed for a purchase decision. | `SPEC.md` §11 | Partial |
+| CAT-005 | 1 | Platform | Search-index lag cannot determine checkout correctness; checkout revalidates authoritative state. | `TECH_SPEC.md` §18 | Partial |
 
 ### 5.4 Inventory and CSV Import
 
 | ID | Phase | Actor | Acceptance statement | Source | Status |
 | --- | --- | --- | --- | --- | --- |
-| INV-001 | 1 | Vendor | Inventory is maintained per location and SKU with quantities, status, reorder threshold, source, timestamp, and version data. | `SPEC.md` §10 | Not assessed |
-| INV-002 | 1 | Vendor | System supports quantity-tracked and availability-only prepared-food inventory. | `SPEC.md` §10 | Not assessed |
-| INV-003 | 1 | Vendor | Portal supports search/filter, inline edit, bulk activation/deactivation, and quantity adjustment. | `SPEC.md` §10 | Not assessed |
-| INV-004 | 1 | Vendor | UTF-8 CSV import supports the specified required and optional fields. | `SPEC.md` §10 | Not assessed |
-| INV-005 | 1 | Vendor | CSV rows are staged and validated with row errors/warnings, a summary, exclusion of invalid rows, and explicit commit. | `SPEC.md` §10; `TECH_SPEC.md` §8 | Not assessed |
-| INV-006 | 1 | Vendor | Committed imports have an audit ID and roll back only when affected records have not subsequently changed. | `SPEC.md` §10; `TECH_SPEC.md` §8 | Not assessed |
-| INV-007 | 1 | Platform | Inventory updates use optimistic concurrency and reject stale writes. | `SPEC.md` §10; `TECH_SPEC.md` §8 | Not assessed |
-| INV-008 | 1 | Platform | Reservations are atomic, short-lived, idempotent, auto-expire, commit on acceptance, and release on rejection/cancellation without overselling. | `SPEC.md` §10; `TECH_SPEC.md` §8 | Not assessed |
-| INV-009 | 1 | Customer | Inventory and search visibility update within 10 seconds of an authoritative change. | `SPEC.md` §10; `TECH_SPEC.md` §18 | Not assessed |
+| INV-001 | 1 | Vendor | Inventory is maintained per location and SKU with quantities, status, reorder threshold, source, timestamp, and version data. | `SPEC.md` §10 | Partial |
+| INV-002 | 1 | Vendor | System supports quantity-tracked and availability-only prepared-food inventory. | `SPEC.md` §10 | Partial |
+| INV-003 | 1 | Vendor | Portal supports search/filter, inline edit, bulk activation/deactivation, and quantity adjustment. | `SPEC.md` §10 | Partial |
+| INV-004 | 1 | Vendor | UTF-8 CSV import supports the specified required and optional fields. | `SPEC.md` §10 | Partial |
+| INV-005 | 1 | Vendor | CSV rows are staged and validated with row errors/warnings, a summary, exclusion of invalid rows, and explicit commit. | `SPEC.md` §10; `TECH_SPEC.md` §8 | Partial |
+| INV-006 | 1 | Vendor | Committed imports have an audit ID and roll back only when affected records have not subsequently changed. | `SPEC.md` §10; `TECH_SPEC.md` §8 | Partial |
+| INV-007 | 1 | Platform | Inventory updates use optimistic concurrency and reject stale writes. | `SPEC.md` §10; `TECH_SPEC.md` §8 | Partial |
+| INV-008 | 1 | Platform | Reservations are atomic, short-lived, idempotent, auto-expire, commit on acceptance, and release on rejection/cancellation without overselling. | `SPEC.md` §10; `TECH_SPEC.md` §8 | Not implemented |
+| INV-009 | 1 | Customer | Inventory and search visibility update within 10 seconds of an authoritative change. | `SPEC.md` §10; `TECH_SPEC.md` §18 | Partial |
 
 ### 5.5 Cart, Quote, and Checkout
 
@@ -193,14 +193,14 @@ Each future audit result must include evidence such as source paths, test names,
 | ID | Phase | Actor | Acceptance statement | Source | Status |
 | --- | --- | --- | --- | --- | --- |
 | UI-001 | 1 | Customer | Responsive customer UI covers discovery, configuration, cart, approval, tracking, and support. | `SPEC.md` §3-4; `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` | Not assessed |
-| UI-002 | 1 | Vendor | Tablet-friendly vendor UI covers settings, catalog/inventory, CSV, orders, preparation, metrics, and publishing. | `SPEC.md` §3-4; `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` | Not assessed |
+| UI-002 | 1 | Vendor | Tablet-friendly vendor UI covers settings, catalog/inventory, CSV, orders, preparation, metrics, and publishing. | `SPEC.md` §3-4; `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` | Partial |
 | UI-003 | 1 | Driver | Mobile driver UI covers onboarding, availability, offers, navigation, pickup, proof, contact, issues, and payout. | `SPEC.md` §3-4; `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` | Not assessed |
 | UI-004 | 1 | Operator | Console supports safety, support, disputes/refunds, fraud, verification, configuration, and operations. | `SPEC.md` §4.4 | Not assessed |
 | UI-005 | 1 | All | Phase 1 provides a text conversational dock and action cards without making conversation the sole workflow. | `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` | Not assessed |
 | UI-006 | 1 | All | Interfaces meet WCAG 2.2 AA including keyboard, focus, labels, contrast, errors, and reduced motion. | `SPEC.md` §19; `TECH_SPEC.md` §20 | Not assessed |
-| UI-007 | 1 | Vendor | Vendor portal and voice/text agent expose inventory, order, inquiry, offer, custom-request, feedback, approval, and agent-policy controls. | `SPEC.md` §4.2, §5.3; `docs/architecture/AGENT_NATIVE_MARKETPLACE_CAPABILITY_SPEC.md` §3-5 | Not assessed |
+| UI-007 | 1 | Vendor | Vendor portal and voice/text agent expose inventory, order, inquiry, offer, custom-request, feedback, approval, and agent-policy controls. | `SPEC.md` §4.2, §5.3; `docs/architecture/AGENT_NATIVE_MARKETPLACE_CAPABILITY_SPEC.md` §3-5 | Partial |
 | UI-008 | 1 | Customer | A distinct customer application supports Android, iOS, tablet, and responsive desktop web with discovery, ordering, tracking, support, and a persistent personal-agent entry point. | `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` §2, §6 | Not assessed |
-| UI-009 | 1 | Vendor | A distinct vendor application supports Android, iOS, tablet, and responsive desktop web with operational dashboards and agent-assisted workflows. | `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` §2, §5 | Not assessed |
+| UI-009 | 1 | Vendor | A distinct vendor application supports Android, iOS, tablet, and responsive desktop web with operational dashboards and agent-assisted workflows. | `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` §2, §5 | Partial |
 | UI-010 | 1 | Driver | A distinct dasher application supports Android and iOS as primary targets, with a responsive desktop operational fallback. | `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` §2, §8 | Not assessed |
 | UI-011 | 1 | Operator | A distinct admin application is desktop-first, large-tablet responsive, keyboard complete, and protected by operator authorization. | `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` §2, §4 | Not assessed |
 | UI-012 | 1 | All | Four role apps share design tokens and API primitives but maintain separate navigation, authorization boundaries, notification channels, and role-scoped agent tools. | `docs/ui/PORTALS_UI_AND_VOICE_AGENT_DESIGN.md` §2 | Not assessed |
