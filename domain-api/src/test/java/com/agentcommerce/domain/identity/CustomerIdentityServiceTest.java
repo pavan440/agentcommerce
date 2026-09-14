@@ -5,7 +5,9 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -23,9 +25,17 @@ class CustomerIdentityServiceTest {
             UUID.randomUUID(),
             "customer@example.com",
             null,
+            null,
             "Ada Customer",
             "en-US",
             "UTC",
+            List.of(),
+            List.of(),
+            "APPROVAL_REQUIRED",
+            false,
+            0L,
+            new BigDecimal("15.00"),
+            0L,
             Set.of("CUSTOMER")
         );
         when(repository.findOrCreateCustomer(argThat(claims ->

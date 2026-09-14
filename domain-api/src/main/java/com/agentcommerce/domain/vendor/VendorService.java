@@ -33,12 +33,13 @@ public class VendorService {
         return vendorRepository.findVendorsByUserId(userId);
     }
 
-    public VendorLocationResponse createLocation(UUID vendorId, CreateVendorLocationRequest request) {
-        if (request.name() == null || request.name().isBlank()) {
-            throw new IllegalArgumentException("Location name cannot be blank");
-        }
-        if (request.communityCode() == null || request.communityCode().isBlank()) {
-            throw new IllegalArgumentException("Community code is required for hyperlocal store partitioning");
+    public VendorLocationResponse createLocation(
+        UUID userId,
+        UUID vendorId,
+        CreateVendorLocationRequest request
+    ) {
+        if (!vendorRepository.canCreateLocations(userId, vendorId)) {
+            throw new VendorAccessDeniedException("An active owner or administrator membership is required");
         }
         return vendorRepository.createVendorLocation(vendorId, request);
     }
@@ -48,14 +49,48 @@ public class VendorService {
     }
 
     public List<VendorLocationResponse> getLocationsInCommunity(String communityCode) {
-        return vendorRepository.findLocationsByCommunity(communityCode);
+        if (communityCode == null || communityCode.isBlank()) {
+            throw new IllegalArgumentException("Community code is required");
+        }
+        return vendorRepository.findLocationsByCommunity(communityCode.trim());
     }
 
-    public Optional<VendorCommerceSettingsResponse> getCommerceSettings(UUID locationId) {
+    public Optional<VendorCommerceSettingsResponse> getCommerceSettings(UUID userId, UUID locationId) {
+        requireLocationManager(userId, locationId);
         return vendorRepository.findCommerceSettings(locationId);
     }
 
-    public boolean updateCommerceSettings(UUID locationId, UpdateCommerceSettingsRequest request) {
-        return vendorRepository.updateCommerceSettings(locationId, request);
+    public void updateCommerceSettings(
+        UUID userId,
+        UUID locationId,
+        UpdateCommerceSettingsRequest request
+    ) {
+        requireLocationManager(userId, locationId);
+        validatePreparationRange(request);
+        if (!vendorRepository.updateCommerceSettings(locationId, request)) {
+            throw new VendorConflictException("Commerce settings changed; reload the resource and retry");
+        }
+    }
+
+    private void requireLocationManager(UUID userId, UUID locationId) {
+        if (!vendorRepository.canManageLocation(userId, locationId)) {
+            throw new VendorAccessDeniedException("An active location manager membership is required");
+        }
+    }
+
+    private void validatePreparationRange(UpdateCommerceSettingsRequest request) {
+        Integer minimum = request.minimumPreparationMinutes();
+        Integer standard = request.defaultPreparationMinutes();
+        Integer maximum = request.maximumPreparationMinutes();
+
+        if (minimum != null && standard != null && minimum > standard) {
+            throw new IllegalArgumentException("Minimum preparation time cannot exceed the default");
+        }
+        if (standard != null && maximum != null && standard > maximum) {
+            throw new IllegalArgumentException("Default preparation time cannot exceed the maximum");
+        }
+        if (minimum != null && maximum != null && minimum > maximum) {
+            throw new IllegalArgumentException("Minimum preparation time cannot exceed the maximum");
+        }
     }
 }

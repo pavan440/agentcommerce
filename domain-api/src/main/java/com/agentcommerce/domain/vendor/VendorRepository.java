@@ -5,8 +5,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,9 +26,7 @@ public class VendorRepository {
     @Transactional
     public VendorResponse createVendor(UUID userId, CreateVendorRequest request) {
         UUID vendorId = UUID.randomUUID();
-        String tagsJson = request.tags() != null && !request.tags().isEmpty()
-            ? "[\"" + String.join("\",\"", request.tags()) + "\"]"
-            : "[]";
+        String tagsJson = toJsonArray(request.tags());
 
         jdbcClient.sql("""
                 INSERT INTO vendors (
@@ -36,16 +34,16 @@ public class VendorRepository {
                     logo_url, banner_url, description, support_email, support_phone,
                     default_currency, fee_tier_id, status, created_by_user_id
                 ) VALUES (
-                    :id, :legalName, :displayName, :slug, :category, :tags::jsonb,
+                    :id, :legalName, :displayName, :slug, :category, CAST(:tags AS jsonb),
                     :logoUrl, :bannerUrl, :description, :supportEmail, :supportPhone,
-                    :defaultCurrency, :feeTierId, 'ACTIVE', :userId
+                    :defaultCurrency, :feeTierId, 'DRAFT', :userId
                 )
                 """)
             .param("id", vendorId)
             .param("legalName", request.legalName())
             .param("displayName", request.displayName())
-            .param("slug", request.slug().toLowerCase().trim())
-            .param("category", request.category() != null ? request.category() : "RESTAURANT")
+            .param("slug", request.slug().trim().toLowerCase(Locale.ROOT))
+            .param("category", request.category() != null ? request.category().trim().toUpperCase(Locale.ROOT) : "RESTAURANT")
             .param("tags", tagsJson)
             .param("logoUrl", request.logoUrl())
             .param("bannerUrl", request.bannerUrl())
@@ -57,7 +55,14 @@ public class VendorRepository {
             .param("userId", userId)
             .update();
 
-        // Create initial OWNER membership for the user
+        jdbcClient.sql("""
+                INSERT INTO user_roles (user_id, role)
+                VALUES (:userId, 'VENDOR_MEMBER')
+                ON CONFLICT DO NOTHING
+                """)
+            .param("userId", userId)
+            .update();
+
         jdbcClient.sql("""
                 INSERT INTO vendor_memberships (vendor_id, user_id, role, status, joined_at)
                 VALUES (:vendorId, :userId, 'OWNER', 'ACTIVE', now())
@@ -71,7 +76,8 @@ public class VendorRepository {
 
     public Optional<VendorResponse> findVendorById(UUID vendorId) {
         return jdbcClient.sql("""
-                SELECT id, legal_name, display_name, slug, category, tags::text,
+                SELECT id, legal_name, display_name, slug, category,
+                       ARRAY(SELECT jsonb_array_elements_text(tags)) AS tags,
                        logo_url, banner_url, description, support_email, support_phone,
                        default_currency, fee_tier_id, status, created_by_user_id,
                        created_at, updated_at, version
@@ -85,7 +91,8 @@ public class VendorRepository {
 
     public List<VendorResponse> findVendorsByUserId(UUID userId) {
         return jdbcClient.sql("""
-                SELECT v.id, v.legal_name, v.display_name, v.slug, v.category, v.tags::text,
+                SELECT v.id, v.legal_name, v.display_name, v.slug, v.category,
+                       ARRAY(SELECT jsonb_array_elements_text(v.tags)) AS tags,
                        v.logo_url, v.banner_url, v.description, v.support_email, v.support_phone,
                        v.default_currency, v.fee_tier_id, v.status, v.created_by_user_id,
                        v.created_at, v.updated_at, v.version
@@ -99,6 +106,52 @@ public class VendorRepository {
             .list();
     }
 
+    public boolean canCreateLocations(UUID userId, UUID vendorId) {
+        return jdbcClient.sql("""
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM vendor_memberships
+                    WHERE user_id = :userId
+                      AND vendor_id = :vendorId
+                      AND status = 'ACTIVE'
+                      AND role IN ('OWNER', 'ADMIN')
+                )
+                """)
+            .param("userId", userId)
+            .param("vendorId", vendorId)
+            .query(Boolean.class)
+            .single();
+    }
+
+    public boolean canManageLocation(UUID userId, UUID locationId) {
+        return jdbcClient.sql("""
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM vendor_memberships membership
+                    JOIN vendor_locations location ON location.vendor_id = membership.vendor_id
+                    WHERE membership.user_id = :userId
+                      AND location.id = :locationId
+                      AND membership.status = 'ACTIVE'
+                      AND (
+                          membership.role IN ('OWNER', 'ADMIN')
+                          OR (
+                              membership.role = 'MANAGER'
+                              AND EXISTS (
+                                  SELECT 1
+                                  FROM vendor_membership_locations scope
+                                  WHERE scope.vendor_id = membership.vendor_id
+                                    AND scope.user_id = membership.user_id
+                                    AND scope.vendor_location_id = location.id
+                              )
+                          )
+                      )
+                )
+                """)
+            .param("userId", userId)
+            .param("locationId", locationId)
+            .query(Boolean.class)
+            .single();
+    }
     @Transactional
     public VendorLocationResponse createVendorLocation(UUID vendorId, CreateVendorLocationRequest req) {
         UUID locationId = UUID.randomUUID();
@@ -110,7 +163,7 @@ public class VendorRepository {
                     formatted_address, coordinates, timezone, logo_url, banner_url, website_url, google_place_id,
                     contact_email, contact_phone, driver_pickup_instructions, customer_pickup_instructions, parking_instructions
                 ) VALUES (
-                    :id, :vendorId, :communityCode, :name, :slug, 'ACTIVE',
+                    :id, :vendorId, :communityCode, :name, :slug, 'DRAFT',
                     :addressLine1, :addressLine2, :locality, :administrativeArea, :postalCode, :countryCode,
                     :formattedAddress, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, :timezone,
                     :logoUrl, :bannerUrl, :websiteUrl, :googlePlaceId,
@@ -119,9 +172,9 @@ public class VendorRepository {
                 """)
             .param("id", locationId)
             .param("vendorId", vendorId)
-            .param("communityCode", req.communityCode())
+            .param("communityCode", req.communityCode().trim().toUpperCase(Locale.ROOT))
             .param("name", req.name())
-            .param("slug", req.slug().toLowerCase().trim())
+            .param("slug", req.slug().trim().toLowerCase(Locale.ROOT))
             .param("addressLine1", req.addressLine1())
             .param("addressLine2", req.addressLine2())
             .param("locality", req.locality())
@@ -143,7 +196,6 @@ public class VendorRepository {
             .param("parkingInstructions", req.parkingInstructions())
             .update();
 
-        // Create default commerce settings
         jdbcClient.sql("""
                 INSERT INTO vendor_location_commerce_settings (
                     vendor_location_id, currency, is_accepting_orders, auto_accept_orders,
@@ -189,7 +241,7 @@ public class VendorRepository {
                 WHERE community_code = :communityCode AND status = 'ACTIVE'
                 ORDER BY name ASC
                 """)
-            .param("communityCode", communityCode)
+            .param("communityCode", communityCode.trim().toUpperCase(Locale.ROOT))
             .query(this::mapLocationRow)
             .list();
     }
@@ -282,15 +334,37 @@ public class VendorRepository {
         return rows > 0;
     }
 
-    private VendorResponse mapVendorRow(ResultSet rs, int rowNum) throws SQLException {
-        String tagsRaw = rs.getString("tags");
-        List<String> tagsList = Collections.emptyList();
-        if (tagsRaw != null && tagsRaw.startsWith("[") && tagsRaw.endsWith("]")) {
-            String stripped = tagsRaw.substring(1, tagsRaw.length() - 1).replace("\"", "");
-            if (!stripped.isBlank()) {
-                tagsList = Arrays.asList(stripped.split(","));
-            }
+    private String toJsonArray(List<String> values) {
+        if (values == null || values.isEmpty()) {
+            return "[]";
         }
+        return values.stream()
+            .map(this::toJsonString)
+            .collect(java.util.stream.Collectors.joining(",", "[", "]"));
+    }
+
+    private String toJsonString(String value) {
+        String escaped = value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\b", "\\b")
+            .replace("\f", "\\f")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
+        return "\"" + escaped + "\"";
+    }
+
+    private List<String> readTags(ResultSet resultSet) throws SQLException {
+        java.sql.Array tags = resultSet.getArray("tags");
+        if (tags == null) {
+            return List.of();
+        }
+        return Arrays.asList((String[]) tags.getArray());
+    }
+
+    private VendorResponse mapVendorRow(ResultSet rs, int rowNum) throws SQLException {
+        List<String> tagsList = readTags(rs);
 
         return new VendorResponse(
             rs.getObject("id", UUID.class),

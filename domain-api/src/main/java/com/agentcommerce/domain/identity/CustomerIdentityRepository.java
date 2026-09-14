@@ -1,9 +1,7 @@
 package com.agentcommerce.domain.identity;
 
 import java.net.URI;
-import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -14,9 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 class CustomerIdentityRepository {
 
     private final JdbcClient jdbcClient;
+    private final UserProfileRepository userProfileRepository;
 
-    CustomerIdentityRepository(JdbcClient jdbcClient) {
+    CustomerIdentityRepository(JdbcClient jdbcClient, UserProfileRepository userProfileRepository) {
         this.jdbcClient = jdbcClient;
+        this.userProfileRepository = userProfileRepository;
     }
 
     @Transactional
@@ -24,7 +24,7 @@ class CustomerIdentityRepository {
         String identityKey = claims.issuer() + "|" + claims.subject();
         jdbcClient.sql("SELECT pg_advisory_xact_lock(hashtextextended(:identityKey, 0))")
             .param("identityKey", identityKey)
-            .query(Long.class)
+            .query((resultSet, rowNumber) -> Boolean.TRUE)
             .single();
 
         Optional<UUID> existingUserId = jdbcClient.sql("""
@@ -39,7 +39,7 @@ class CustomerIdentityRepository {
 
         UUID userId = existingUserId.orElseGet(() -> createCustomer(claims));
         updateLastLogin(userId, claims);
-        return loadProfile(userId);
+        return userProfileRepository.findProfile(userId).orElseThrow();
     }
 
     private UUID createCustomer(IdentityClaims claims) {
@@ -97,45 +97,6 @@ class CustomerIdentityRepository {
             .update();
     }
 
-    private CustomerProfileResponse loadProfile(UUID userId) {
-        ProfileRow profile = jdbcClient.sql("""
-                SELECT u.id, u.email, u.phone, p.display_name, p.locale, p.timezone
-                FROM users u
-                JOIN customer_profiles p ON p.user_id = u.id
-                WHERE u.id = :userId
-                """)
-            .param("userId", userId)
-            .query((resultSet, rowNumber) -> new ProfileRow(
-                resultSet.getObject("id", UUID.class),
-                resultSet.getString("email"),
-                resultSet.getString("phone"),
-                resultSet.getString("display_name"),
-                resultSet.getString("locale"),
-                resultSet.getString("timezone")
-            ))
-            .single();
-
-        Set<String> roles = new LinkedHashSet<>(jdbcClient.sql("""
-                SELECT role
-                FROM user_roles
-                WHERE user_id = :userId
-                ORDER BY role
-                """)
-            .param("userId", userId)
-            .query(String.class)
-            .list());
-
-        return new CustomerProfileResponse(
-            profile.id(),
-            profile.email(),
-            profile.phone(),
-            profile.displayName(),
-            profile.locale(),
-            profile.timezone(),
-            Set.copyOf(roles)
-        );
-    }
-
     private String providerName(String issuer) {
         try {
             return Optional.ofNullable(URI.create(issuer).getHost()).orElse(issuer);
@@ -154,15 +115,4 @@ class CustomerIdentityRepository {
         }
         return "Customer";
     }
-
-    private record ProfileRow(
-        UUID id,
-        String email,
-        String phone,
-        String displayName,
-        String locale,
-        String timezone
-    ) {
-    }
 }
-

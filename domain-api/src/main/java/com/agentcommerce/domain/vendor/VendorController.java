@@ -4,6 +4,10 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import com.agentcommerce.domain.identity.CurrentUserService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -19,17 +23,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class VendorController {
 
     private final VendorService vendorService;
+    private final CurrentUserService currentUserService;
 
-    public VendorController(VendorService vendorService) {
+    public VendorController(VendorService vendorService, CurrentUserService currentUserService) {
         this.vendorService = vendorService;
+        this.currentUserService = currentUserService;
     }
 
     @PostMapping
     public ResponseEntity<VendorResponse> createVendor(
         @AuthenticationPrincipal Jwt jwt,
-        @RequestBody CreateVendorRequest request
+        @Valid @RequestBody CreateVendorRequest request
     ) {
-        UUID userId = extractUserId(jwt);
+        UUID userId = currentUserService.id(jwt);
         VendorResponse response = vendorService.createVendor(userId, request);
         return ResponseEntity.created(URI.create("/v1/vendors/" + response.id())).body(response);
     }
@@ -43,28 +49,16 @@ public class VendorController {
 
     @GetMapping("/me")
     public ResponseEntity<List<VendorResponse>> getMyVendors(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = extractUserId(jwt);
-        return ResponseEntity.ok(vendorService.getVendorsForUser(userId));
+        return ResponseEntity.ok(vendorService.getVendorsForUser(currentUserService.id(jwt)));
     }
 
     @PostMapping("/{vendorId}/locations")
     public ResponseEntity<VendorLocationResponse> createLocation(
+        @AuthenticationPrincipal Jwt jwt,
         @PathVariable UUID vendorId,
-        @RequestBody CreateVendorLocationRequest request
+        @Valid @RequestBody CreateVendorLocationRequest request
     ) {
-        VendorLocationResponse response = vendorService.createLocation(vendorId, request);
+        VendorLocationResponse response = vendorService.createLocation(currentUserService.id(jwt), vendorId, request);
         return ResponseEntity.created(URI.create("/v1/vendor-locations/" + response.id())).body(response);
-    }
-
-    private UUID extractUserId(Jwt jwt) {
-        if (jwt == null || jwt.getSubject() == null) {
-            // Fallback for unauthenticated dev testing
-            return UUID.fromString("00000000-0000-0000-0000-000000000001");
-        }
-        try {
-            return UUID.fromString(jwt.getSubject());
-        } catch (IllegalArgumentException ex) {
-            return UUID.nameUUIDFromBytes(jwt.getSubject().getBytes());
-        }
     }
 }
