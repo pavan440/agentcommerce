@@ -23,7 +23,7 @@ sources:
 - Customer profile, addresses, consent, devices, and emergency contacts.
 - Vendor onboarding, memberships, locations, and commerce settings.
 - Dasher onboarding, verification, zones, and availability.
-- Catalog and inventory records with vendor-location tenancy.
+- Catalog and inventory records with vendor-location tenancy and a single optional item image URL.
 - Staged UTF-8 CSV inventory validation and explicit commit.
 - Customer-facing available-menu API.
 - Four responsive installable role PWAs.
@@ -32,7 +32,7 @@ sources:
 
 # Under Development
 
-- Rich catalog variants, modifiers, allergens, images, and semantic search.
+- Rich catalog variants, modifiers, allergens, image upload/galleries, item soft delete, timed availability, price history, and semantic search.
 - Import row exclusion, rollback, object storage, and import history.
 - Inventory reservations and outbox events.
 - Cart, quote, order, payment, dispatch, messaging, support, and offer services.

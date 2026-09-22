@@ -152,6 +152,21 @@ public class VendorRepository {
             .query(Boolean.class)
             .single();
     }
+
+    public boolean hasRole(UUID userId, String role) {
+        return jdbcClient.sql("""
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM user_roles
+                    WHERE user_id = :userId
+                      AND role = :role
+                )
+                """)
+            .param("userId", userId)
+            .param("role", role)
+            .query(Boolean.class)
+            .single();
+    }
     @Transactional
     public VendorLocationResponse createVendorLocation(UUID vendorId, CreateVendorLocationRequest req) {
         UUID locationId = UUID.randomUUID();

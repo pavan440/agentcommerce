@@ -18,7 +18,7 @@ sources:
 ---
 # Priority Order
 
-1. Finish catalog and inventory depth: variants, modifiers, allergens, images, search, row exclusion, rollback, import history, outbox events.
+1. Finish catalog and inventory depth: variants, modifiers, allergens, image upload/galleries, item soft delete, timed availability, price history, search, row exclusion, rollback, import history, outbox events.
 2. Add cart, quote, reservation, and checkout state machines.
 3. Add vendor order handling and substitution coordination.
 4. Add payment, ledger, webhook reconciliation, settlement, and refunds.

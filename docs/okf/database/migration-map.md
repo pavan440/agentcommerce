@@ -24,6 +24,7 @@ sources:
 | `V5__create_promotions_and_community_schema.sql` | Promotions and community | Community zones, sales targets, promotions, redemptions, performance, announcements |
 | `V6__create_pos_integration_schema.sql` | POS integration | POS connections, sales stream, inventory sync logs, hourly sales baselines |
 | `V7__create_catalog_inventory_schema.sql` | Catalog and inventory | Catalog items, inventory records, inventory imports, staged import rows |
+| `V8__add_inventory_image_url.sql` | Catalog media metadata | Single optional image URL on catalog items and staged import rows |
 
 # Generation Rules
 

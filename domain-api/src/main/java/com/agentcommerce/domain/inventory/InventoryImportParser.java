@@ -30,12 +30,13 @@ class InventoryImportParser {
 
     private ParsedInventoryRow parseRow(int number, List<String> headers, List<String> values) {
         Map<String,String> row = new HashMap<>(); for (int i=0;i<headers.size();i++) row.put(headers.get(i), i<values.size()?values.get(i).trim():"");
-        List<String> errors = new ArrayList<>(); String sku=row.get("sku"), name=row.get("name"), category=blank(row.get("category"));
+        List<String> errors = new ArrayList<>(); String sku=row.get("sku"), name=row.get("name"), imageUrl=blank(row.get("image_url")), category=blank(row.get("category"));
         if (sku.isBlank()) errors.add("sku is required"); if (name.isBlank()) errors.add("name is required");
+        if (imageUrl != null && imageUrl.length() > 512) errors.add("image_url must be 512 characters or fewer");
         Long price = decimalMinor(row.get("price"), errors); Integer quantity = integer(row.get("quantity_on_hand"), "quantity_on_hand", errors);
         Boolean available = bool(row.get("is_available"), errors); Integer threshold = row.containsKey("reorder_threshold") ? integerDefault(row.get("reorder_threshold"), "reorder_threshold", errors, 0) : 0;
         String currency = row.getOrDefault("currency", "USD").toUpperCase(Locale.ROOT); if (!currency.matches("[A-Z]{3}")) errors.add("currency must be three letters");
-        return new ParsedInventoryRow(number, sku, name, category, price, currency, quantity, available, threshold, String.join("; ", errors));
+        return new ParsedInventoryRow(number, sku, name, imageUrl, category, price, currency, quantity, available, threshold, String.join("; ", errors));
     }
     private Long decimalMinor(String value,List<String> errors){try{var d=new java.math.BigDecimal(value);if(d.signum()<0||d.scale()>2)throw new Exception();return d.movePointRight(2).longValueExact();}catch(Exception e){errors.add("price must be a non-negative decimal with at most 2 places");return null;}}
     private Integer integer(String value,String field,List<String> errors){return integerDefault(value,field,errors,null);} private Integer integerDefault(String value,String field,List<String> errors,Integer fallback){if(value==null||value.isBlank())return fallback;try{int n=Integer.parseInt(value);if(n<0)throw new Exception();return n;}catch(Exception e){errors.add(field+" must be a non-negative integer");return null;}}
@@ -43,4 +44,4 @@ class InventoryImportParser {
     private String blank(String value){return value==null||value.isBlank()?null:value;}
     private List<String> split(String line){List<String> out=new ArrayList<>();StringBuilder value=new StringBuilder();boolean quoted=false;for(int i=0;i<line.length();i++){char ch=line.charAt(i);if(ch=='"'){if(quoted&&i+1<line.length()&&line.charAt(i+1)=='"'){value.append('"');i++;}else quoted=!quoted;}else if(ch==','&&!quoted){out.add(value.toString());value.setLength(0);}else value.append(ch);}out.add(value.toString());return out;}
 }
-record ParsedInventoryRow(int rowNumber,String sku,String name,String category,Long priceMinor,String currency,Integer quantityOnHand,Boolean available,Integer reorderThreshold,String error){boolean valid(){return error.isEmpty();}}
+record ParsedInventoryRow(int rowNumber,String sku,String name,String imageUrl,String category,Long priceMinor,String currency,Integer quantityOnHand,Boolean available,Integer reorderThreshold,String error){boolean valid(){return error.isEmpty();}}
