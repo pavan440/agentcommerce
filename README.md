@@ -227,12 +227,14 @@ docs/backend/      Implemented API documentation
 docs/database/     Database design specifications
 docs/architecture/ Agent-native and GCP architecture specifications
 docs/ui/           UI, PWA, and voice-agent design
+docs/okf/          Open Knowledge Format bundle for agent-readable project context
 SPEC.md             Product requirements
 TECH_SPEC.md        Technical implementation contract
 ```
 
 ## Key Documentation
 
+- `docs/okf/` - OKF bundle that agents should read first for code generation context.
 - `SPEC.md` — product requirements and role-agent behavior.
 - `TECH_SPEC.md` — domain boundaries, APIs, events, security, testing, and GCP deployment.
 - `docs/FUNCTIONALITY_CATALOG.md` — traceable functionality and audit status.
